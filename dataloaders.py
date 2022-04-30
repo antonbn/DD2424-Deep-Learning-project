@@ -7,7 +7,7 @@ import glob
 
 class CustomDataSet(Dataset):
     def __init__(self, main_dir, transform_bw, transform_rgb, mode):
-        self.images = glob.glob(os.path.join(os.path.join(main_dir, mode), '**/*.JPEG'))
+        self.images = glob.glob(os.path.join(os.path.join(main_dir, mode), '*.JPEG'))
         self.mode = mode
         self.transform_bw = transform_bw
         self.transform_rgb = transform_rgb
