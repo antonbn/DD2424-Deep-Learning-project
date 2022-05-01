@@ -2,37 +2,43 @@ import torch
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
 import os
-import PIL.Image as Image
 import glob
+from skimage import color, io
+from PIL import Image
+import numpy as np
+from scipy.spatial import cKDTree
+from scipy.stats import norm
+import pickle
 
 class CustomDataSet(Dataset):
-    def __init__(self, main_dir, transform_bw, transform_rgb, mode):
+    def __init__(self, main_dir, input_size, mode, tree_path):
         self.images = glob.glob(os.path.join(os.path.join(main_dir, mode), '*.JPEG'))
         self.mode = mode
-        self.transform_bw = transform_bw
-        self.transform_rgb = transform_rgb
+        self.input_size = input_size
+        self.n_neighbours = 5
+        with open(tree_path, 'rb') as pickle_file:
+            self.tree = pickle.load(pickle_file)
 
     def __len__(self):
         return len(self.images)
 
     def __getitem__(self, idx):
-        img_loc = self.images[idx]
-        image = Image.open(img_loc).convert("RGB")
-        return self.transform_bw(image), self.transform_rgb(image)
+        image = Image.open(self.images[idx]).convert('RGB')
+        x = transforms.CenterCrop(self.input_size)(image)
+        rgb = np.array(x)
+        lab = color.rgb2lab(rgb)
+        lab = lab.transpose([2, 0, 1])
+        dist, ii = self.tree.query(lab[1:3].reshape(2, self.input_size**2).T, self.n_neighbours)
+        x = torch.from_numpy(lab)
+        weights = norm.pdf(dist, loc=0, scale=5)
+        y = torch.sum(torch.eye(self.tree.n)[ii] * weights[:, :, None], axis=1)/weights.sum(axis=1)[:, None]
+        return x, y
 
-def create_dataloader(batch_size, input_size, shuffle, mode):
-    transform_rgb = transforms.Compose([transforms.CenterCrop(input_size),
-                                        transforms.ToTensor()])
-    
-    transform_bw = transforms.Compose([transforms.CenterCrop(input_size),
-                                    transforms.Grayscale(),
-                                    transforms.ToTensor(),
-                                    transforms.Normalize(mean=[0.5],
-                                                         std=[0.5])])
-    
-    data = CustomDataSet("../ImageNet", transform_bw, transform_rgb, mode)
+def create_dataloader(batch_size, input_size, shuffle, mode, tree_path):
+    data = CustomDataSet("../ImageNet", input_size, mode, tree_path)
     data_loader = torch.utils.data.DataLoader(data,
                                               batch_size=batch_size,
                                               shuffle=shuffle,
-                                              num_workers=4)
+                                              num_workers=4,
+                                              pin_memory=True)
     return data_loader
