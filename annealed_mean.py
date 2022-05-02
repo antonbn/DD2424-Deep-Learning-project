@@ -23,4 +23,14 @@ def pred_to_ab(Z_pred, T=.38):
                 img_ab[i, h, w, 0] = a
                 img_ab[i, h, w, 1] = b
 
+
     return img_ab
+
+def pred_to_ab_vec(Z, T):
+    with open("tree.p", 'rb') as pickle_file:
+        tree = pickle.load(pickle_file)
+    annealed = torch.exp(torch.log(Z)/T)/torch.sum(torch.exp(torch.log(Z)/T), axis=1)[:, None]
+    annealed = np.stack((np.sum(tree.data[None, :, None, 0, None] * annealed.numpy(), axis=1),
+              np.sum(tree.data[None, :, None, 1, None] * annealed.numpy(), axis=1)))
+    return annealed.transpose([1, 2, 3, 0])
+
