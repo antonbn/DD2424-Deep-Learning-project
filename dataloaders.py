@@ -42,13 +42,17 @@ def create_dataloader(batch_size, input_size, shuffle, mode, tree_path):
                                               pin_memory=True)
     return data_loader
 
+
 def encode(X, Weights, ii):
     n = 322
     n_neighbours = Weights.shape[-1]
     if torch.cuda.is_available():
-        X, Weights, Ii = X.cuda(), Weights.cuda(), ii.cuda()
+        device = "cuda"
+    else:
+        device = "cpu"
+    X, Weights, ii = X.to(device), Weights.to(device), ii.to(device)
     if n_neighbours > 1:
-        Y = torch.sum(torch.eye(n)[ii] * Weights[:, :, :, None], axis=-2) / Weights.sum(axis=-1)[:, :, None]
+        Y = torch.sum(torch.eye(n).to(device)[ii] * Weights[:, :, :, None], axis=-2) / Weights.sum(axis=-1)[:, :, None]
     else:
         Y = torch.eye(n)[ii]
-    return X, Y.T.reshape(X.shape[0], n, 224, 224)
+    return X, Y.transpose(2, 1).reshape(X.shape[0], n, 224, 224)
