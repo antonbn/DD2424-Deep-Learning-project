@@ -31,8 +31,11 @@ class CustomDataSet(Dataset):
         dist, ii = self.tree.query(lab[1:3].reshape(2, self.input_size**2).T, self.n_neighbours)
         x = torch.from_numpy(lab)
         weights = norm.pdf(dist, loc=0, scale=5)
-        y = torch.sum(torch.eye(self.tree.n)[ii] * weights[:, :, None], axis=1)/weights.sum(axis=1)[:, None]
-        return x, y
+        if self.n_neighbours > 1:
+            y = torch.sum(torch.eye(self.tree.n)[ii] * weights[:, :, None], axis=1)/weights.sum(axis=1)[:, None]
+        else:
+            y = torch.eye(self.tree.n)[ii]
+        return x, y.T.reshape(self.tree.n, 224, 224)
 
 def create_dataloader(batch_size, input_size, shuffle, mode, tree_path):
     data = CustomDataSet("../ImageNet", input_size, mode, tree_path)
