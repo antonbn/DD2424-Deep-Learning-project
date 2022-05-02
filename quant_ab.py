@@ -3,6 +3,8 @@ from scipy.ndimage.interpolation import shift
 from itertools import permutations
 from skimage.color import rgb2lab
 from matplotlib import pyplot as plt
+from scipy.spatial import cKDTree
+import pickle
 
 def find_bins(displ = False):
     """Finds the bins in the quantized ab space that are useful and saves them to (some format when we've decided)
@@ -27,31 +29,33 @@ def find_bins(displ = False):
     H, xedges, yedges = np.histogram2d(points_ab[:, 0], points_ab[:, 1], bins=np.arange(-115, 125, 10))
 
     # All relevant bins, i.e. bins that are used in the ab space
-    for i in range(23):
+    """for i in range(23):
         for j in range(23):
             if H[i, j] > 0:
-                H[i, j] = 1
+                H[i, j] = 1"""
+    H[H > 0] = 1
 
     # The neighbors of those bins
     G = H + shift(H, (1, 0), cval=0) + shift(H, (-1, 0), cval=0) + shift(H, (0, 1), cval=0) + shift(H, (0, -1), cval=0)
 
     # Make it binary
-    for i in range(23):
+    """for i in range(23):
         for j in range(23):
             if G[i, j] > 1e-2:
                 G[i, j] = 1
             else:
-                G[i, j] = 0
+                G[i, j] = 0"""
+    G = np.where(G > 1e-2, 1, 0)
 
     # Make a dictionary so that you can map bin indices to the bin number (Q)
     # Might be better to store it some other way like the coordinates in ab space instead and do NN search
-    count = 0
+    """count = 0
     dic = {}
     for i in range(23):
         for j in range(23):
             if G[i, j] == 1:
                 dic.update({(i, j): count})
-                count += 1
+                count += 1"""
 
     # Uncomment when we know what we want to save and where
     # Might also want this function to return something
@@ -66,3 +70,7 @@ def find_bins(displ = False):
         plt.gca().invert_yaxis()
         plt.pcolormesh(X, Y, G)
         plt.show()
+
+#find_bins(True)
+tree = cKDTree([[1,2], [-25, -5], [30, 40] , [89, 78], [0, 50], [0, 0]], copy_data=True)
+pickle.dump(tree, open('tree.p', 'wb'))
