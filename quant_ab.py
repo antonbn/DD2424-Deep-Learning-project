@@ -7,7 +7,7 @@ from scipy.spatial import cKDTree
 import pickle
 
 def find_bins(displ = False):
-    """Finds the bins in the quantized ab space that are useful and saves them to (some format when we've decided)
+    """Finds the bins in the quantized ab space that are useful and saves the bin centers to a 2-D tree
     by mapping (almost) all possible values of rgb colors to ab space."""
     # Just going to be run once so there's not that important to be efficient
     # 262 bins according to H
@@ -22,8 +22,6 @@ def find_bins(displ = False):
 
     points_ab = np.zeros([n_perm, 2])
     for i in range(n_perm):
-        if i % n_perm and displ == 0:
-            print(10 * i / n_perm)
         points_ab[i, :] = rgb2lab(points[i])[1:3]
 
     H, xedges, yedges = np.histogram2d(points_ab[:, 0], points_ab[:, 1], bins=np.arange(-115, 125, 10))
@@ -57,10 +55,16 @@ def find_bins(displ = False):
                 dic.update({(i, j): count})
                 count += 1"""
 
-    # Uncomment when we know what we want to save and where
-    # Might also want this function to return something
-    # np.savez('AB_histogram', G=G, H=H, xedges=xedges, yedges=yedges)
-    # np.save('AB_Q_dict', dic)
+    xcenters = xedges[0:-1]+5
+    ycenters = yedges[0:-1]+5
+
+    y_inds, x_inds = np.where(G==1)
+
+    bin_centers = np.moveaxis(np.vstack([xcenters[x_inds], ycenters[y_inds]]), -1, 0)
+
+    # Saves bin centers as a K-D tree
+    tree = cKDTree(bin_centers, copy_data=True)
+    pickle.dump(tree, open('tree.p', 'wb'))
 
     if displ:
         X, Y = np.meshgrid(xedges, yedges)
@@ -69,8 +73,6 @@ def find_bins(displ = False):
         plt.show()
         plt.gca().invert_yaxis()
         plt.pcolormesh(X, Y, G)
+        bin_centers = np.moveaxis(bin_centers, 1, 0)
+        plt.scatter(bin_centers[0, :], bin_centers[1, :])
         plt.show()
-
-#find_bins(True)
-tree = cKDTree([[1,2], [-25, -5], [30, 40] , [89, 78], [0, 50], [0, 0]], copy_data=True)
-pickle.dump(tree, open('tree.p', 'wb'))
