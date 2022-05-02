@@ -15,10 +15,12 @@ def pred_to_ab(Z_pred, T=.38):
 
         for h in range(H):
             for w in range(W):
-                interpolation = torch.exp(torch.log(Z_pred[i, :, h, w]) / T)
-                interpolation /= torch.sum(interpolation)
+                p_interpolation = torch.exp(torch.log(Z_pred[i, :, h, w]) / T)
+                p_interpolation /= torch.sum(p_interpolation)
 
-                q = torch.argmax(interpolation)
-                img_ab[i, h, w] = tree.data[q]
+                a = np.sum(np.multiply(p_interpolation.numpy(), tree.data[:, 0]))
+                b = np.sum(np.multiply(p_interpolation.numpy(), tree.data[:, 1]))
+                img_ab[i, h, w, 0] = a
+                img_ab[i, h, w, 1] = b
 
     return img_ab
