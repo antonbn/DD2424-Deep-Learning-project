@@ -24,7 +24,7 @@ class CustomDataSet(Dataset):
 
     def __getitem__(self, idx):
         image = Image.open(self.images[idx]).convert('RGB')
-        x = transforms.CenterCrop(self.input_size)(image)
+        x = transforms.Resize((self.input_size, self.input_size))(image)
         rgb = np.array(x)
         lab = color.rgb2lab(rgb)
         lab = lab.transpose([2, 0, 1])

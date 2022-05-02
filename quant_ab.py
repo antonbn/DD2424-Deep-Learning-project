@@ -76,3 +76,6 @@ def find_bins(displ = False):
         bin_centers = np.moveaxis(bin_centers, 1, 0)
         plt.scatter(bin_centers[0, :], bin_centers[1, :])
         plt.show()
+
+if __name__ == '__main__':
+    find_bins(displ=True)

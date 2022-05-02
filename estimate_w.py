@@ -5,7 +5,7 @@ from scipy.ndimage import gaussian_filter1d
 
 def CalculateSaveW():
     """Class rebalancing"""
-    train_dataloader = create_dataloader(64, 224, False, "val", "tree.p")
+    train_dataloader = create_dataloader(64, 224, False, "train", "tree.p")
     lamb = 0.5
     sigma = 5
 
