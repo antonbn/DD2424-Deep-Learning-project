@@ -9,11 +9,13 @@ def parse_configs():
     ####################################################################
     parser.add_argument('--input_size', type=int, default=224, metavar='INPSIZE',
                         help='The size of the input image')
+    parser.add_argument('--checkpoint', type=str, default='', metavar='CPATH',
+                        help='the directory of the checkpoint')
 
     ####################################################################
     ##############     Dataloader and Running configs            #######
     ####################################################################
-    parser.add_argument('--name', type=str, default='model', metavar='Name',
+    parser.add_argument('--name', type=str, default='debug', metavar='Name',
                         help='model name')
     parser.add_argument('--batch_size', type=int, default=32)
 

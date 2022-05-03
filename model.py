@@ -69,7 +69,7 @@ class ConvNet(nn.Module):
         model8 += [nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1, bias=True), ]
         model8 += [nn.ReLU(True), ]
 
-        model8 += [nn.Conv2d(256, 313, kernel_size=1, stride=1, padding=0, bias=True), ]
+        model8 += [nn.Conv2d(256, 322, kernel_size=1, stride=1, padding=0, bias=True), ]
 
         self.model1 = nn.Sequential(*model1)
         self.model2 = nn.Sequential(*model2)
