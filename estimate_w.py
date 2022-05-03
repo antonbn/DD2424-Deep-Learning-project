@@ -7,7 +7,7 @@ import pickle
 
 def CalculateSaveW():
     """Class rebalancing"""
-    train_dataloader = create_dataloader(1, 224, False, "train", "tree.p")
+    train_dataloader = create_dataloader(1, 224, False, "train_40000", "tree.p")
     lamb = 0.5
     sigma = 5
     with open("tree.p", 'rb') as pickle_file:
