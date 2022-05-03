@@ -1,16 +1,18 @@
 import numpy as np
 from dataloaders import create_dataloader, encode
 from tqdm import tqdm
-from scipy.ndimage import gaussian_filter1d
 import time
+from scipy.stats import norm
+import pickle
 
 def CalculateSaveW():
     """Class rebalancing"""
-    train_dataloader = create_dataloader(1, 224, False, "train_40000", "tree.p")
+    train_dataloader = create_dataloader(1, 224, False, "train", "tree.p")
     lamb = 0.5
     sigma = 5
+    with open("tree.p", 'rb') as pickle_file:
+        tree = pickle.load(pickle_file)
 
-    import time
     start = time.process_time()
     # ab color distribution (now int, but it will get transformed into the correct shape 1D)
     p = 0
@@ -26,13 +28,21 @@ def CalculateSaveW():
 
     # smooth with gaussian filter
     p = p.cpu().numpy()
-    p_smooth = gaussian_filter1d(p, sigma)
+
+    p_smooth = np.zeros_like(p)
+    for i in range(322):
+        weights = norm.pdf(tree.data, loc=tree.data[i], scale=sigma)
+        weights = weights[:, 0]*weights[:, 1]
+        weights = weights/weights.sum()
+        p_smooth[i] = np.dot(p, weights)
     # mix with uniform
-    w = 1/((1 - lamb) * p_smooth + lamb / p.shape[0])
+    w = 1/((1 - lamb) * p_smooth + lamb / p_smooth.shape[0])
 
     # normalize
-    w = w / np.dot(w, p)
-    np.save("W.npy", w)
+    w = w / np.dot(w, p_smooth)
+    np.save("p_40000.npy", p)
+    np.save("p_smooth_40000.npy", p_smooth)
+    np.save("W_40000.npy", w)
 
 
 if __name__ == '__main__':

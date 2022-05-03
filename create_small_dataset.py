@@ -2,11 +2,8 @@ import shutil
 import os
 import random
 
-images = os.listdir("../ImageNet")
+images = os.listdir("../ImageNet/train")
 images = [i for i in images if i.endswith(".JPEG")]
-images = random.choices(images, k=40000)
+images = random.sample(images, 40000)
 for i in images:
-    print("../ImageNet/train/"+i)
-    print("../ImageNet/train_40000/"+i)
-    print()
-    #shutil.move("../ImageNet/train/"+i, "../ImageNet/train_40000/"+i)
+    shutil.move("../ImageNet/train/"+i, "../ImageNet/train_40000/"+i)
