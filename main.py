@@ -7,6 +7,7 @@ from matplotlib import pyplot as plt
 import pickle
 from skimage import color, io
 from annealed_mean import pred_to_ab, pred_to_ab_vec
+from baselines import to_gray, to_random
 
 
 if __name__ == '__main__':
@@ -27,10 +28,18 @@ if __name__ == '__main__':
         X_ = X.numpy().transpose([0, 2, 3, 1])
         out = pred_to_ab_vec(y, 0.38)
         out = color.lab2rgb(np.concatenate((X_[:, :, :, 0][:, :, :, None], out), axis=-1))
+        out_gray_baseline = to_gray(X_)
+        out_gray_baseline = color.lab2rgb(np.concatenate((X_[:, :, :, 0][:, :, :, None], out_gray_baseline), axis=-1))
+        out_random_baseline = to_random(X_, val_loader)  # should take images from train set, replace with train_loader
+        out_random_baseline = color.lab2rgb(np.concatenate((X_[:, :, :, 0][:, :, :, None], out_random_baseline), axis=-1))
         orig = color.lab2rgb(X_)
         plt.imshow(orig[0, :, :, :])
         plt.show()
         plt.imshow(out[0, :, :, :])
+        plt.show()
+        plt.imshow(out_gray_baseline[0, :, :, :])
+        plt.show()
+        plt.imshow(out_random_baseline[0, :, :, :])
         plt.show()
 
         pred = torch.rand((configs.batch_size, 322, configs.input_size, configs.input_size))
