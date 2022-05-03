@@ -12,7 +12,7 @@ from annealed_mean import pred_to_ab, pred_to_ab_vec
 if __name__ == '__main__':
     configs = parse_configs()
     #train_loader = create_dataloader(configs.batch_size, configs.input_size, True, "train", "tree.p")
-    val_loader = create_dataloader(4, configs.input_size, False, "val", "tree.p")
+    val_loader = create_dataloader(configs.batch_size, configs.input_size, False, "val", "tree.p")
     #test_loader = create_dataloader(configs.batch_size, configs.input_size, False, "test", "tree.p")
     if torch.cuda.is_available():
         print("CUDA")
@@ -33,7 +33,7 @@ if __name__ == '__main__':
         plt.imshow(out[0, :, :, :])
         plt.show()
 
-        pred = torch.rand((4, 322, configs.input_size, configs.input_size))
+        pred = torch.rand((configs.batch_size, 322, configs.input_size, configs.input_size))
         J = loss(pred, y)
         _, axs = plt.subplots(8, 4, figsize=(12, 12))
         axs = axs.flatten()
