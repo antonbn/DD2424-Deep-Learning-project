@@ -6,14 +6,14 @@ from config import parse_configs
 from matplotlib import pyplot as plt
 import pickle
 from skimage import color, io
-from annealed_mean import pred_to_ab, pred_to_ab_vec, pred_to_rgb_vec
+from annealed_mean import pred_to_ab_vec, pred_to_rgb_vec
 
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     configs = parse_configs()
     #train_loader = create_dataloader(configs.batch_size, configs.input_size, True, "train", "tree.p")
-    val_loader = create_dataloader(configs.batch_size, configs.input_size, False, "val", "tree.p")
+    val_loader = create_dataloader(4, configs.input_size, False, "val_4000", "tree.p")
     #test_loader = create_dataloader(configs.batch_size, configs.input_size, False, "test", "tree.p")
     if torch.cuda.is_available():
         print("CUDA")
@@ -22,17 +22,15 @@ if __name__ == '__main__':
     loss = CustomLoss("W_40000.npy", device)
 
     for X, Weights, ii in val_loader:
-        _, y = encode(X, Weights, ii, device)
+        X, y = encode(X, Weights, ii, device)
         del ii
         del Weights
-        X_ = X.numpy().transpose([0, 2, 3, 1])
-        out = pred_to_ab_vec(y, 0.38)
-        out = color.lab2rgb(np.concatenate((X_[:, :, :, 0][:, :, :, None], out), axis=-1))
-        orig = pred_to_rgb_vec(X, y, T=0.38)
-        plt.imshow(orig[0, :, :, :])
+        plt.imshow(color.lab2rgb(X[0, :, :, :].numpy().copy().transpose([1, 2, 0])))
         plt.show()
-        plt.imshow(out[0, :, :, :])
+        orig = pred_to_rgb_vec(X[:, 0, :, :].unsqueeze(1), y, T=0.38)
+        plt.imshow(orig[0, :, :, :].numpy().transpose([1, 2, 0]))
         plt.show()
+
 
         pred = torch.rand((configs.batch_size, 322, configs.input_size, configs.input_size))
         J = loss(pred, y)
