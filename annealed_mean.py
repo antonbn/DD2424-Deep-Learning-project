@@ -35,8 +35,8 @@ def pred_to_ab_vec(Z, T):
     return annealed.transpose([1, 2, 3, 0])
 
 def pred_to_rgb_vec(X, Z, T=0.38):
-    X = X.cpu().numpy()
-    Z = pred_to_ab_vec(Z.cpu(), T)
+    X = X.detach().cpu().numpy()
+    Z = pred_to_ab_vec(Z.detach().cpu(), T)
     lab = np.concatenate((X.transpose([0, 2, 3, 1]), Z), axis=-1)
     rgb = color.lab2rgb(lab)
     return rgb

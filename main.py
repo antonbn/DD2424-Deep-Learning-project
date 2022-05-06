@@ -26,7 +26,7 @@ def train(configs):
     if device.type == "cpu":
         configs.batch_size = 2
     train_loader = create_dataloader(configs.batch_size, configs.input_size, True, "train_40000", "tree.p")
-    val_loader = create_dataloader(configs.batch_size, configs.input_size, False, "val", "tree.p")
+    val_loader = create_dataloader(configs.batch_size, configs.input_size, False, "val_4000", "tree.p")
     #test_loader = create_dataloader(configs.batch_size, configs.input_size, False, "test", "tree.p")
 
     model = ConvNet().to(device)
@@ -62,13 +62,14 @@ def train(configs):
             J.backward()
             optimizer.step()
             running_loss += J.item()
-            if update_step % 100 == 0:
-                running_loss /= 100
+            if update_step % configs.loss_fr == 0:
+                running_loss /= configs.loss_fr
                 train_summary_writer.add_scalar(f'info/Training loss', running_loss, update_step)
-                """out = pred_to_ab_vec(y, 0.38)
-                out = color.lab2rgb(np.concatenate((X_[:, :, :, 0][:, :, :, None], out), axis=-1))
-                orig = color.lab2rgb(X_)
-                train_summary_writer.add_image('imresult', image, update_step)"""
+                val_batch_Z = model(val_batch_X)
+                val_batch_im = pred_to_rgb_vec(val_batch_X, val_batch_Z, T=0.38)
+                val_batch_im = torch.from_numpy(val_batch_im.transpose([0, 3, 1, 2]))
+                val_batch_im = torchvision.utils.make_grid(val_batch_im)
+                train_summary_writer.add_image('imresult', val_batch_im, update_step)
                 running_loss = 0.0
             update_step += 1
 

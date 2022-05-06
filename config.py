@@ -23,10 +23,12 @@ def parse_configs():
     ##############     Training strategy            ###################
     ####################################################################
 
-    parser.add_argument('--num_epochs', type=int, default=20, metavar='N',
+    parser.add_argument('--num_epochs', type=int, default=10, metavar='N',
                         help='number of total epochs to run')
     parser.add_argument('--lr', type=float, default=1e-3, metavar='LR',
                         help='initial learning rate')
+    parser.add_argument('--loss_fr', type=float, default=100, metavar='LF',
+                        help='loss plotting frequency in update steps')
 
     configs = edict(vars(parser.parse_args()))
 
