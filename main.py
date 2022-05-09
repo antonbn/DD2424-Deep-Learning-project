@@ -23,7 +23,7 @@ def train(configs):
     val_loader = create_dataloader(configs.batch_size, configs.input_size, False, "sports_cars/val", "tree.p")
 
     model = ConvNet().to(device)
-    loss = CustomLoss("W_40000.npy", device)
+    loss = CustomLoss("W_sports_cars.npy", device)
     optimizer = torch.optim.Adam(model.parameters(), lr=configs.lr, weight_decay=.001)
 
     if configs.checkpoint:
