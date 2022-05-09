@@ -9,7 +9,7 @@ import torch
 def CalculateSaveW():
     """Class rebalancing"""
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    train_dataloader = create_dataloader(4, 224, False, "train_40000", "tree.p")
+    train_dataloader = create_dataloader(6, 224, False, "sports_cars/train", "tree.p")
     lamb = 0.5
     sigma = 5
     with open("tree.p", 'rb') as pickle_file:
@@ -23,10 +23,8 @@ def CalculateSaveW():
         # y [batch_size, 322, 224, 224]
         X, y = encode(X, Weights, ii, device)
         p += y.mean(axis=(0, 2, 3))
-        del ii
-        del Weights
-        if i == 100:
-            break
+        #if i == 100:
+            #break
     print(time.process_time() - start)
     print(time.time() - start2)
 
@@ -46,9 +44,9 @@ def CalculateSaveW():
 
     # normalize
     w = w / np.dot(w, p_smooth)
-    """np.save("p_40000.npy", p)
-    np.save("p_smooth_40000.npy", p_smooth)
-    np.save("W_40000.npy", w)"""
+    np.save("p_sports_cars.npy", p)
+    np.save("p_smooth_sports_cars.npy", p_smooth)
+    np.save("W_sports_cars.npy", w)
 
 
 if __name__ == '__main__':
