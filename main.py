@@ -85,7 +85,7 @@ def train(configs):
 
         state = {'state_dict': model.state_dict(),
                  'optimizer': optimizer.state_dict()}
-        torch.save(state, "saved_models" + configs.name + "_" + str(e) +"_.tar")
+        torch.save(state, "saved_models/" + configs.name + "_" + str(e) +"_.tar")
 
 if __name__ == '__main__':
     configs = parse_configs()
