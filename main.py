@@ -58,7 +58,7 @@ def train(configs):
                 model.eval()
                 with torch.no_grad():
                     val_batch_Z = model(val_batch_X)
-                    val_batch_im = pred_to_rgb_vec(val_batch_X, torch.exp(val_batch_Z), device, T=0.38)
+                    val_batch_im = pred_to_rgb_vec(val_batch_X, val_batch_Z, device, T=0.38)
                     val_batch_im = torchvision.utils.make_grid(val_batch_im)
                 train_summary_writer.add_scalar(f'info/Training loss', running_loss, update_step)
                 train_summary_writer.add_image('imresult', val_batch_im, update_step)
