@@ -80,7 +80,7 @@ class ConvNet(nn.Module):
         self.model7 = nn.Sequential(*model7)
         self.model8 = nn.Sequential(*model8)
 
-        self.softmax = nn.Softmax(dim=1)
+        self.softmax = nn.LogSoftmax(dim=1)
         self.upsample4 = nn.Upsample(scale_factor=4, mode='bilinear', align_corners=False)
         # Output is HxWxQ where Q = 313 or the number of bins of ab pairs
         # Might want to also not upscale it before doing computations as it's more efficient
