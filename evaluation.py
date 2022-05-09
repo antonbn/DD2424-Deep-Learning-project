@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.stats import norm
 
 
 # assumes input of dimension (images, W, H, 2)
