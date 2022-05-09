@@ -46,8 +46,8 @@ def train(configs):
     val_batch_im = torchvision.utils.make_grid(val_batch_im)
     train_summary_writer.add_image('im_orig', val_batch_im, update_step)
 
+    running_loss = 0.0
     for e in tqdm(range(epochs)):
-        running_loss = 0.0
         for X, Weights, ii in tqdm(train_loader, leave=False):
             model.train()
             X, Z = encode(X, Weights, ii, device)
@@ -85,7 +85,7 @@ def train(configs):
 
         state = {'state_dict': model.state_dict(),
                  'optimizer': optimizer.state_dict()}
-        torch.save(state, "/saved_models" + configs.name + "_" + str(e) +"_.tar")
+        torch.save(state, "saved_models" + configs.name + "_" + str(e) +"_.tar")
 
 if __name__ == '__main__':
     configs = parse_configs()
