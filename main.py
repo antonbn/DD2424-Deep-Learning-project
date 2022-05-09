@@ -24,8 +24,8 @@ def train(configs):
     print("CUDA", torch.cuda.is_available())
     if device.type == "cpu":
         configs.batch_size = 1
-    train_loader = create_dataloader(configs.batch_size, configs.input_size, True, "train_40000", "tree.p")
-    val_loader = create_dataloader(configs.batch_size, configs.input_size, False, "val_4000", "tree.p")
+    train_loader = create_dataloader(configs.batch_size, configs.input_size, True, "sports_cars/train", "tree.p")
+    val_loader = create_dataloader(configs.batch_size, configs.input_size, False, "sports_cars/val", "tree.p")
     #test_loader = create_dataloader(configs.batch_size, configs.input_size, False, "test", "tree.p")
 
     model = ConvNet().to(device)
