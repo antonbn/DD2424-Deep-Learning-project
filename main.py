@@ -1,16 +1,11 @@
-import numpy as np
 import torch
 from dataloaders import create_dataloader, encode
 from loss import CustomLoss
 from config import parse_configs
-from matplotlib import pyplot as plt
-import pickle
-from skimage import color, io
-from annealed_mean import pred_to_ab_vec, pred_to_rgb_vec
+from annealed_mean import pred_to_rgb_vec
 from model import ConvNet
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
-from skimage import color
 import torchvision
 
 def load(model, optimizer, path):
@@ -26,7 +21,6 @@ def train(configs):
         configs.batch_size = 1
     train_loader = create_dataloader(configs.batch_size, configs.input_size, True, "sports_cars/train", "tree.p")
     val_loader = create_dataloader(configs.batch_size, configs.input_size, False, "sports_cars/val", "tree.p")
-    #test_loader = create_dataloader(configs.batch_size, configs.input_size, False, "test", "tree.p")
 
     model = ConvNet().to(device)
     loss = CustomLoss("W_40000.npy", device)
