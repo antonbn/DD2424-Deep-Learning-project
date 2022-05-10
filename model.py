@@ -91,13 +91,13 @@ class ConvNet(nn.Module):
         return (input_l - self.l_cent) / self.l_norm
 
     def forward(self, input_l):
-        conv1_2 = self.model1(self.normalize_l(input_l))
-        conv2_2 = self.model2(conv1_2)
-        conv3_3 = self.model3(conv2_2)
-        conv4_3 = self.model4(conv3_3)
-        conv5_3 = self.model5(conv4_3)
-        conv6_3 = self.model6(conv5_3)
-        conv7_3 = self.model7(conv6_3)
-        conv8_3 = self.model8(conv7_3)
-        out_reg = self.softmax(conv8_3)
-        return self.upsample4(out_reg)
+        x = self.model1(self.normalize_l(input_l))
+        x = self.model2(x)
+        x = self.model3(x)
+        x = self.model4(x)
+        x = self.model5(x)
+        x = self.model6(x)
+        x = self.model7(x)
+        x = self.model8(x)
+        x = self.softmax(x)
+        return self.upsample4(x)
