@@ -19,8 +19,8 @@ def train(configs):
     print("CUDA", torch.cuda.is_available())
     if device.type == "cpu":
         configs.batch_size = 1
-    train_loader = create_dataloader(configs.batch_size, configs.input_size, True, "sports_cars/train", "tree.p")
-    val_loader = create_dataloader(configs.batch_size, configs.input_size, False, "sports_cars/val", "tree.p")
+    train_loader = create_dataloader(configs.batch_size, configs.input_size, True, "train_40000", "tree.p")
+    val_loader = create_dataloader(configs.batch_size, configs.input_size, False, "val_4000", "tree.p")
 
     model = ConvNet().to(device)
     loss = CustomLoss("W_40000.npy", device)
@@ -36,7 +36,7 @@ def train(configs):
     epochs = configs.num_epochs
     update_step = 0
     val_batch_X, val_batch_Z = encode(*next(iter(val_loader)), device)
-    val_batch_im = pred_to_rgb_vec(val_batch_X, val_batch_Z, device, T=0.38)
+    val_batch_im = pred_to_rgb_vec(val_batch_X, torch.log(val_batch_Z), device, T=0.38)
     val_batch_im = torchvision.utils.make_grid(val_batch_im)
     train_summary_writer.add_image('im_orig', val_batch_im, update_step)
 
@@ -58,7 +58,7 @@ def train(configs):
                 model.eval()
                 with torch.no_grad():
                     val_batch_Z = model(val_batch_X)
-                    val_batch_im = pred_to_rgb_vec(val_batch_X, torch.exp(val_batch_Z), device, T=0.38)
+                    val_batch_im = pred_to_rgb_vec(val_batch_X, val_batch_Z, device, T=0.38)
                     val_batch_im = torchvision.utils.make_grid(val_batch_im)
                 train_summary_writer.add_scalar(f'info/Training loss', running_loss, update_step)
                 train_summary_writer.add_image('imresult', val_batch_im, update_step)

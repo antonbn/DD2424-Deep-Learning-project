@@ -15,7 +15,7 @@ def parse_configs():
     ####################################################################
     ##############     Dataloader and Running configs            #######
     ####################################################################
-    parser.add_argument('--name', type=str, default='debug_sports_cars_fixed', metavar='Name',
+    parser.add_argument('--name', type=str, default='40k_full_1', metavar='Name',
                         help='model name')
     parser.add_argument('--batch_size', type=int, default=6)
 
@@ -23,7 +23,7 @@ def parse_configs():
     ##############     Training strategy            ###################
     ####################################################################
 
-    parser.add_argument('--num_epochs', type=int, default=10, metavar='N',
+    parser.add_argument('--num_epochs', type=int, default=30, metavar='N',
                         help='number of total epochs to run')
     parser.add_argument('--lr', type=float, default=1e-3, metavar='LR',
                         help='initial learning rate')

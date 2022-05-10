@@ -9,26 +9,28 @@ import torch
 def CalculateSaveW():
     """Class rebalancing"""
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    train_dataloader = create_dataloader(4, 224, False, "train_40000", "tree.p")
+    train_dataloader = create_dataloader(6, 224, False, "train_40000", "tree.p")
     lamb = 0.5
     sigma = 5
     with open("tree.p", 'rb') as pickle_file:
         tree = pickle.load(pickle_file)
 
-    start = time.process_time()
-    start2 = time.time()
+    start = time.time()
     # ab color distribution (now int, but it will get transformed into the correct shape 1D)
     p = 0
+    end = 0
     for i, (X, Weights, ii) in enumerate(tqdm(train_dataloader)):
         # y [batch_size, 322, 224, 224]
+        start2 = time.time()
         X, y = encode(X, Weights, ii, device)
-        p += y.mean(axis=(0, 2, 3))
-        del ii
-        del Weights
+        end += time.time() - start2
+        #p += y.mean(axis=(0, 2, 3))
         if i == 100:
             break
-    print(time.process_time() - start)
-    print(time.time() - start2)
+    print("The whole loop")
+    print(time.time() - start)
+    print("The encode")
+    print(end)
 
     p /= len(train_dataloader)
 

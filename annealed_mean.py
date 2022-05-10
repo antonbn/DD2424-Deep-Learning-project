@@ -1,6 +1,5 @@
 import torch
 import pickle
-from util import lab2rgb, rgb2lab
 from skimage import color
 import numpy as np
 
@@ -31,7 +30,7 @@ def pred_to_ab_vec(Z, T, device):
         tree = pickle.load(pickle_file)
     data0 = torch.from_numpy(tree.data)[None, :, None, 0, None].to(device)
     data1 = torch.from_numpy(tree.data)[None, :, None, 1, None].to(device)
-    annealed = torch.exp(torch.log(Z)/T)/torch.sum(torch.exp(torch.log(Z)/T), axis=1)[:, None]
+    annealed = torch.exp(Z/T)/torch.sum(torch.exp(Z/T), axis=1)[:, None]
     annealed = torch.stack((torch.sum(data0 * annealed, axis=1),
               torch.sum(data1 * annealed, axis=1)))
     return torch.transpose(annealed, 0, 1)
