@@ -3,23 +3,21 @@ from torch.utils.data import Dataset
 import torchvision.transforms as transforms
 import os
 import glob
-from skimage import color
 from PIL import Image
-from scipy.stats import norm
-import pickle
-import json
+import csv
+
 
 
 class CustomDataSet(Dataset):
     def __init__(self, main_dir, input_size, mode):
-        self.images = glob.glob(os.path.join(os.path.join(main_dir, mode), '*/*.JPEG'))
+        self.images = glob.glob(os.path.join(os.path.join(main_dir, mode), '*.JPEG'))
         self.mode = mode
-        with open(main_dir + '/Labels.json', "r") as f:
-            categories = [s.strip() for s in f.readlines()]
-        A = categories[0].split('"')
         d = {}
-        for i in range(100):
-            d[A[1 + i * 4]] = A[3 + i * 4].split(",")[0]
+        with open(main_dir + '/LOC_val_solution.csv', "r") as f:
+            categories = csv.reader(f)
+            next(categories, None)
+            for lines in categories:
+                d[lines[0]] = getnIDs(lines[1])
         self.labels = d
         self.input_size = input_size
         self.transforms = transforms.Compose([
@@ -33,9 +31,10 @@ class CustomDataSet(Dataset):
 
     def __getitem__(self, idx):
         image = Image.open(self.images[idx]).convert('RGB')
-        label_label = self.images[idx].split('\\')[-2]
+        file_name = os.path.basename(self.images[idx])
+        file_name_no_ext = os.path.splitext(file_name)[0]
         image = self.transforms(image)
-        return image, self.labels[label_label]
+        return image, self.labels[file_name_no_ext]
 
 def create_dataloader(batch_size, input_size, shuffle, mode):
     data = CustomDataSet("../ImageNet", input_size, mode)
@@ -46,21 +45,10 @@ def create_dataloader(batch_size, input_size, shuffle, mode):
                                               pin_memory=True)
     return data_loader
 
-
-def encode(X, Weights, ii, device):
-    """
-    :return:
-    X [batch_size, 1, H, W]
-    Y [batch_size, 322, H, W]
-    """
-    n = 322
-    X, Weights, ii = X.to(device), Weights.to(device), ii.to(device)
-    if len(Weights.shape) > 2:
-        Y = torch.zeros((X.shape[0], X.shape[-1]*X.shape[-2], n)).to(device)
-        I = torch.arange(Weights.shape[0])[:, None, None].to(device)
-        I2 = torch.arange(Weights.shape[1])[None, :, None].to(device)
-        Y[I, I2, ii] = Weights.float()
-        #Y = torch.sum(torch.eye(n)[ii].to(device) * Weights[:, :, :, None], axis=-2)
-    else:
-        Y = torch.eye(n)[ii].to(device)
-    return X.double(), Y.transpose(2, 1).reshape(X.shape[0], n, 224, 224).double()
+def getnIDs(string):
+    ids = []
+    str_split = string.split(" ")
+    n_ids = len(str_split)//5
+    for i in range(n_ids):
+        ids.append(str_split[i*5])
+    return ids
