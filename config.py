@@ -15,7 +15,7 @@ def parse_configs():
     ####################################################################
     ##############     Dataloader and Running configs            #######
     ####################################################################
-    parser.add_argument('--name', type=str, default='40k_full_1', metavar='Name',
+    parser.add_argument('--name', type=str, default='40k_full_2', metavar='Name',
                         help='model name')
     parser.add_argument('--batch_size', type=int, default=6)
 

@@ -1,6 +1,7 @@
 import torch
 import pickle
 from skimage import color
+import numpy as np
 
 
 
@@ -19,6 +20,7 @@ def pred_to_rgb_vec(X, Z, device, T=0.38):
     Z = pred_to_ab_vec(Z.detach(), T, device)
     lab = torch.cat((X, Z), axis=1).detach().cpu().numpy()
     rgb = color.lab2rgb(lab.transpose([0, 2, 3, 1]))
+    rgb = (np.clip(rgb, 0, 1)*255).astype('uint8')
     rgb = torch.from_numpy(rgb.transpose([0, 3,  1, 2]))
     return rgb
 
