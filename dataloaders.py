@@ -25,6 +25,7 @@ class CustomDataSet(Dataset):
     def __getitem__(self, idx):
         image = Image.open(self.images[idx]).convert('RGB')
         rgb = transforms.Resize((self.input_size, self.input_size))(image)
+        rgb = transforms.RandomHorizontalFlip()(rgb)
         lab = color.rgb2lab(rgb)
         lab = lab.transpose([2, 0, 1])
         dist, ii = self.tree.query(lab[1:3].reshape(2, self.input_size**2).T, self.n_neighbours)
