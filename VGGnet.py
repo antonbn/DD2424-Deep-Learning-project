@@ -1,7 +1,6 @@
 import torch
-from PIL import Image
-from torchvision import transforms
 from VGG_dataloader import create_dataloader
+from tqdm import tqdm
 from config import parse_configs
 import os
 
@@ -25,14 +24,22 @@ def VGG_eval(configs):
     val_loader_VGG = create_dataloader(1, configs.input_size, True, "not val")
 
     # Have to download the imagenet_classes.txt to the VM if it isn't there
-    with open('..\ImageNet\imagenet_classes.txt', "r") as f:
+    with open('..\ImageNet\LOC_synset_mapping.txt', "r") as f:
         categories = [s.strip() for s in f.readlines()]
+    categories = [x.split(" ")[0] for x in categories]
 
-    for x,y in val_loader_VGG:
+    correct = 0
+    n_guesses = 0
+    for x,y in tqdm(val_loader_VGG, total=len(val_loader_VGG)):
         with torch.no_grad():
             output = model(x)
-        guess_prob, guess_catid = torch.topk(torch.nn.functional.softmax(output[0], dim=0), 1)
-        print('Predicted category: ' + str(categories[guess_catid]) + '\n', 'True category: ' + str(y[0]) + '\n', 'Confidence: ' + str(guess_prob.item()) + '\n')
+        _, guess_catid = torch.topk(torch.nn.functional.softmax(output[0], dim=0), 1)
+        n_guesses += 1
+        if categories[guess_catid] in y[0]:
+            correct += 1
+        #print('Predicted category: ' + str(categories[guess_catid]) + '\n', 'True category: ' + str(y[0]) + '\n', 'Confidence: ' + str(guess_prob.item()) + '\n')
+    print('Total accuracy: ' + str(correct/n_guesses))
+
 
 if __name__ == '__main__':
     configs = parse_configs()
