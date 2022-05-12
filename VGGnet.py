@@ -1,7 +1,10 @@
+import numpy as np
 import torch
 from VGG_dataloader import create_dataloader
 from tqdm import tqdm
 from config import parse_configs
+from annealed_mean import pred_to_rgb_vec
+from matplotlib import pyplot as plt
 import os
 
 def VGG_download(path):
@@ -13,8 +16,9 @@ def VGG_load(path):
     return torch.load(path)
 
 def VGG_eval(configs):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     path = 'pretrained_VGG.pt'
-    if not os.path.exists('pretrained_VGG.pt'):
+    if not os.path.exists(path):
         model = VGG_download(path)
     else:
         model = VGG_load(path)
@@ -30,10 +34,10 @@ def VGG_eval(configs):
 
     correct = 0
     n_guesses = 0
-    for x,y in tqdm(val_loader_VGG, total=len(val_loader_VGG)):
+    for x,z,y in tqdm(val_loader_VGG, total=len(val_loader_VGG)):
         with torch.no_grad():
             output = model(x)
-        _, guess_catid = torch.topk(torch.nn.functional.softmax(output[0], dim=0), 1)
+        _, guess_catid = torch.topk(torch.nn.functional.softmax(output, dim=0), 1)
         n_guesses += 1
         if categories[guess_catid] in y[0]:
             correct += 1
