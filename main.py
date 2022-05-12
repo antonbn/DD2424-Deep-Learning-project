@@ -11,7 +11,7 @@ import torchvision
 def load(model, optimizer, path):
     checkpoint = torch.load(path)
     model.load_state_dict(checkpoint['state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer'])
+    optimizer.load_state_dict(checkpoint['optimizer'].double())
 
 
 def train(configs):
@@ -28,6 +28,7 @@ def train(configs):
 
     if configs.checkpoint:
         load(model, optimizer, configs.checkpoint)
+        update_step = 30*len(train_loader)
     model.to(torch.double)
 
 

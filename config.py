@@ -15,9 +15,9 @@ def parse_configs():
     ####################################################################
     ##############     Dataloader and Running configs            #######
     ####################################################################
-    parser.add_argument('--name', type=str, default='cars_full', metavar='Name',
+    parser.add_argument('--name', type=str, default='cars_full_continue', metavar='Name',
                         help='model name')
-    parser.add_argument('--batch_size', type=int, default=6)
+    parser.add_argument('--batch_size', type=int, default=8)
 
     ####################################################################
     ##############     Training strategy            ###################
