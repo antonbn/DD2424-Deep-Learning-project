@@ -7,11 +7,12 @@ from model import ConvNet
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
 import torchvision
+import os
 
-def load(model, optimizer, path):
-    checkpoint = torch.load(path)
+def load(model, optimizer, name):
+    checkpoint = torch.load(os.path.join("saved_models", name))
     model.load_state_dict(checkpoint['state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer'].double())
+    optimizer.load_state_dict(checkpoint['optimizer'])
 
 
 def train(configs):
@@ -23,19 +24,21 @@ def train(configs):
     val_loader = create_dataloader(configs.batch_size, configs.input_size, False, "sports_cars/val", "tree.p")
 
     model = ConvNet().to(device)
+    model.to(torch.double)
     loss = CustomLoss("W_sports_cars.npy", device)
     optimizer = torch.optim.Adam(model.parameters(), lr=configs.lr, weight_decay=.001)
 
+    update_step = 0
+    e_load = 0
     if configs.checkpoint:
         load(model, optimizer, configs.checkpoint)
-        update_step = 30*len(train_loader)
-    model.to(torch.double)
+        update_step = 30*352
+        e_load = 30
 
 
     train_log_dir = 'logs/tensorboard/' + configs.name
     train_summary_writer = SummaryWriter(train_log_dir)
     epochs = configs.num_epochs
-    update_step = 0
     val_batch_X, val_batch_Z = encode(*next(iter(val_loader)), device)
     val_batch_im = pred_to_rgb_vec(val_batch_X, torch.log(val_batch_Z), device, T=0.38)
     val_batch_im = torchvision.utils.make_grid(val_batch_im)
@@ -80,7 +83,7 @@ def train(configs):
 
         state = {'state_dict': model.state_dict(),
                  'optimizer': optimizer.state_dict()}
-        torch.save(state, "saved_models/" + configs.name + "_" + str(e) +"_.tar")
+        torch.save(state, "saved_models/" + configs.name + "_" + str(e+e_load) +".tar")
 
 if __name__ == '__main__':
     configs = parse_configs()
