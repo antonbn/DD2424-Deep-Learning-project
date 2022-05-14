@@ -10,6 +10,7 @@ import csv
 
 class CustomDataSet(Dataset):
     def __init__(self, main_dir, input_size, mode):
+        # Might want to create a new one that works on the output from our colorizer
         self.images = glob.glob(os.path.join(os.path.join(main_dir, mode), '*.JPEG'))
         self.mode = mode
         d = {}
@@ -25,6 +26,10 @@ class CustomDataSet(Dataset):
             transforms.CenterCrop(224),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),])
+        self.transforms_no_normalize = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(), ])
 
     def __len__(self):
         return len(self.images)
@@ -33,8 +38,9 @@ class CustomDataSet(Dataset):
         image = Image.open(self.images[idx]).convert('RGB')
         file_name = os.path.basename(self.images[idx])
         file_name_no_ext = os.path.splitext(file_name)[0]
+        image_no_normal = self.transforms_no_normalize(image)
         image = self.transforms(image)
-        return image, self.labels[file_name_no_ext]
+        return image, image_no_normal, self.labels[file_name_no_ext]
 
 def create_dataloader(batch_size, input_size, shuffle, mode):
     data = CustomDataSet("../ImageNet", input_size, mode)
