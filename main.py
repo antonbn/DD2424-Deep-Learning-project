@@ -32,8 +32,6 @@ def train(configs):
     e_load = 0
     if configs.checkpoint:
         load(model, optimizer, configs.checkpoint)
-        update_step = 30*352
-        e_load = 30
 
 
     train_log_dir = 'logs/tensorboard/' + configs.name
@@ -52,7 +50,7 @@ def train(configs):
             del ii
             del Weights
             Z_pred = model(X)
-            J = loss(Z_pred, Z)
+            J = loss(Z_pred, Z, False)
             optimizer.zero_grad()
             J.backward()
             optimizer.step()
@@ -76,7 +74,7 @@ def train(configs):
                         del ii
                         del Weights
                         Z_pred = model(X)
-                        J = loss(Z_pred, Z)
+                        J = loss(Z_pred, Z, False)
                         val_loss += J.item()
                 train_summary_writer.add_scalar(f'info/Validation loss', val_loss, update_step)
             update_step += 1
