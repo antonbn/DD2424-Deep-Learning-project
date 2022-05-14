@@ -8,4 +8,4 @@ class CustomLoss:
         if use_weights:
             return -torch.sum(self.w[torch.argmax(Z, axis=1)]*torch.sum(Z * Z_pred, dim=1))/Z.shape[0]
         else:
-            return -torch.sum(Z * Z_pred, dim=1) / Z.shape[0]
+            return -torch.sum(Z * Z_pred) / Z.shape[0]
