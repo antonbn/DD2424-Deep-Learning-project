@@ -25,7 +25,7 @@ def VGG_eval(configs):
 
     model.eval()
 
-    val_loader_VGG = create_dataloader(1, configs.input_size, True, "not val")
+    val_loader_VGG = create_dataloader(1, configs.input_size, True, "val", 'grayscale')
 
     # Have to download the imagenet_classes.txt to the VM if it isn't there
     with open('..\ImageNet\LOC_synset_mapping.txt', "r") as f:
@@ -34,11 +34,14 @@ def VGG_eval(configs):
 
     correct = 0
     n_guesses = 0
-    for x,z,y in tqdm(val_loader_VGG, total=len(val_loader_VGG)):
+    for x,y in tqdm(val_loader_VGG, total=len(val_loader_VGG)):
         with torch.no_grad():
             output = model(x)
-        _, guess_catid = torch.topk(torch.nn.functional.softmax(output, dim=0), 1)
+        _, guess_catid = torch.topk(torch.nn.functional.softmax(output[0], dim=0), 1)
         n_guesses += 1
+        #print(categories[guess_catid])
+        #plt.imshow(x[0].moveaxis(0,-1))
+        #plt.show()
         if categories[guess_catid] in y[0]:
             correct += 1
         #print('Predicted category: ' + str(categories[guess_catid]) + '\n', 'True category: ' + str(y[0]) + '\n', 'Confidence: ' + str(guess_prob.item()) + '\n')
