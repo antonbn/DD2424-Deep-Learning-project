@@ -2,9 +2,12 @@ import numpy as np
 import os
 import torch
 import pickle
+from main import load
+from model import ConvNet
 from scipy.stats import norm
 from tqdm import tqdm
 from config import parse_configs
+from annealed_mean import pred_to_ab_vec
 from AuC_dataloader import create_dataloader
 from dataloaders import encode
 from baselines import to_gray, to_random
@@ -74,7 +77,18 @@ def area_under_curve(ab_pred, ab_true, dataloader=None):
 
 if __name__ == '__main__':
 	configs = parse_configs()
+	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 	val_loader = create_dataloader(configs.batch_size, configs.input_size, False, "sports_cars/val", "tree.p")
+
+	model_full = ConvNet().to(device)
+	model_full.to(torch.double)
+	optimizer_full = torch.optim.Adam(model_full.parameters(), lr=configs.lr, weight_decay=.001)
+	load(model_full, optimizer_full, 'cars_full_35.tar')
+
+	model_no_weights = ConvNet().to(device)
+	model_no_weights.to(torch.double)
+	optimizer_no_weights = torch.optim.Adam(model_no_weights.parameters(), lr=configs.lr, weight_decay=.001)
+	load(model_no_weights, optimizer_no_weights, 'cars_no_weights_44.tar')
 
 	if not os.path.exists("AuC_w/W_sports_cars.npy"):
 		CalculateSaveW(val_loader)
@@ -83,18 +97,36 @@ if __name__ == '__main__':
 	accuracies_gray_rebal = np.zeros(len(val_loader))
 	accuracies_random = np.zeros(len(val_loader))
 	accuracies_random_rebal = np.zeros(len(val_loader))
+	accuracies_full = np.zeros(len(val_loader))
+	accuracies_full_rebal = np.zeros(len(val_loader))
+	accuracies_no_weights = np.zeros(len(val_loader))
+	accuracies_no_weights_rebal = np.zeros(len(val_loader))
 
 	for i, (X, ab_true, Weights, ii) in enumerate(tqdm(val_loader, leave=False)):
 		ab_true = ab_true.numpy().transpose([0, 2, 3, 1])
 		ab_gray = to_gray(ab_true)
 		ab_random = to_random(ab_true, val_loader)
 
+		Z_full = model_full(X)
+		Z_no_weights = model_no_weights(X)
+
+		ab_full = pred_to_ab_vec(Z_full, 0.38, device).detach().numpy().transpose([0, 2, 3, 1])
+		ab_no_weights = pred_to_ab_vec(Z_no_weights, 0.38, device).detach().numpy().transpose([0, 2, 3, 1])
+
 		accuracies_gray[i] = area_under_curve(ab_gray, ab_true)
 		accuracies_gray_rebal[i] = area_under_curve(ab_gray, ab_true, val_loader)
 		accuracies_random[i] = area_under_curve(ab_random, ab_true)
 		accuracies_random_rebal[i] = area_under_curve(ab_random, ab_true, val_loader)
+		accuracies_full[i] = area_under_curve(ab_full, ab_true)
+		accuracies_full_rebal[i] = area_under_curve(ab_full, ab_true, val_loader)
+		accuracies_no_weights[i] = area_under_curve(ab_no_weights, ab_true)
+		accuracies_no_weights_rebal[i] = area_under_curve(ab_no_weights, ab_true, val_loader)
 
 	print("Baseline, gray (non-rebal) accuracy: " + str(np.mean(accuracies_gray)))
 	print("Baseline, gray (rebal) accuracy: " + str(np.mean(accuracies_gray_rebal)))
 	print("Baseline, random (non-rebal) accuracy: " + str(np.mean(accuracies_random)))
 	print("Baseline, random (rebal) accuracy: " + str(np.mean(accuracies_random_rebal)))
+	print("Full (non-rebal) accuracy: " + str(np.mean(accuracies_full)))
+	print("Full (rebal) accuracy: " + str(np.mean(accuracies_full_rebal)))
+	print("No weights (non-rebal) accuracy: " + str(np.mean(accuracies_no_weights)))
+	print("No weights (rebal) accuracy: " + str(np.mean(accuracies_no_weights_rebal)))
