@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 import os
 
 def VGG_download(path):
-    model = torch.hub.load('pytorch/vision:v0.10.0', 'vgg11', pretrained=True)
+    model = torch.hub.load('pytorch/vision:v0.10.0', 'vgg16', pretrained=True)
     torch.save(model, path)
     return model
 
@@ -25,7 +25,7 @@ def VGG_eval(configs):
 
     model.eval()
 
-    val_loader_VGG = create_dataloader(1, configs.input_size, True, "val", 'grayscale')
+    val_loader_VGG = create_dataloader(1, configs.input_size, True, "val", 'normalize')
 
     # Have to download the imagenet_classes.txt to the VM if it isn't there
     with open('..\ImageNet\LOC_synset_mapping.txt', "r") as f:
