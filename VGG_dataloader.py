@@ -33,7 +33,9 @@ class CustomDataSet(Dataset):
         weights = norm.pdf(dist, loc=0, scale=5)
         if self.n_neighbours > 1:
             weights = weights / weights.sum(axis=-1)[:, None]
-        return torch.unsqueeze(x[0], 0), weights, ii, os.path.basename(self.images[idx]).split('_')[0]
+        file_name = os.path.basename(self.images[idx])
+        file_name_no_ext = os.path.splitext(file_name)[0]
+        return torch.unsqueeze(x[0], 0), weights, ii, file_name_no_ext.split('_')[0]
 
 class CustomDataSetVGG(Dataset):
     def __init__(self, main_dir, input_size, mode, transform_extra):

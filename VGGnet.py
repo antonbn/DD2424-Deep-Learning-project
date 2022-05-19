@@ -51,7 +51,6 @@ def VGG_eval(configs):
                 if categories[guess_catid] in y[0]:
                     correct += 1
             accuracies[acc_index] = correct/n_guesses
-            print(correct/n_guesses)
 
         else:
             val_loader = create_dataloader_label(1, configs.input_size, False, "sports_cars/val", "tree.p")
@@ -79,8 +78,8 @@ def VGG_eval(configs):
                     if categories[guess_catid] == label[0]:
                         correct += 1
                     accuracies[acc_index] = correct / n_guesses
-    for i in range(accuracies):
-        print(models_to_test[i] + ' accuracy: ' + str(accuracies[i]) + '\n')
+    for i in range(len(accuracies)):
+        print(models_to_test[i] + ' accuracy: ' + str(accuracies[i]))
 
 
 if __name__ == '__main__':
