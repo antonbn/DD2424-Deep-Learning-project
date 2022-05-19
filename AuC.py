@@ -90,6 +90,11 @@ if __name__ == '__main__':
 	optimizer_no_weights = torch.optim.Adam(model_no_weights.parameters(), lr=configs.lr, weight_decay=.001)
 	load(model_no_weights, optimizer_no_weights, 'cars_no_weights_44.tar')
 
+	model_l2 = ConvNet().to(device)
+	model_l2.to(torch.double)
+	optimizer_l2 = torch.optim.Adam(model_l2.parameters(), lr=configs.lr, weight_decay=.001)
+	load(model_l2, optimizer_l2, 'cars_L2_64.tar')
+
 	if not os.path.exists("AuC_w/W_sports_cars.npy"):
 		CalculateSaveW(val_loader)
 
@@ -101,6 +106,8 @@ if __name__ == '__main__':
 	accuracies_full_rebal = np.zeros(len(val_loader))
 	accuracies_no_weights = np.zeros(len(val_loader))
 	accuracies_no_weights_rebal = np.zeros(len(val_loader))
+	accuracies_l2 = np.zeros(len(val_loader))
+	accuracies_l2_rebal = np.zeros(len(val_loader))
 
 	for i, (X, ab_true, Weights, ii) in enumerate(tqdm(val_loader, leave=False)):
 		ab_true = ab_true.numpy().transpose([0, 2, 3, 1])
@@ -109,9 +116,11 @@ if __name__ == '__main__':
 
 		Z_full = model_full(X)
 		Z_no_weights = model_no_weights(X)
+		Z_l2 = model_l2(X)
 
 		ab_full = pred_to_ab_vec(Z_full, 0.38, device).detach().numpy().transpose([0, 2, 3, 1])
 		ab_no_weights = pred_to_ab_vec(Z_no_weights, 0.38, device).detach().numpy().transpose([0, 2, 3, 1])
+		ab_l2 = Z_l2.detach().numpy().transpose([0, 2, 3, 1])
 
 		accuracies_gray[i] = area_under_curve(ab_gray, ab_true)
 		accuracies_gray_rebal[i] = area_under_curve(ab_gray, ab_true, val_loader)
@@ -121,6 +130,8 @@ if __name__ == '__main__':
 		accuracies_full_rebal[i] = area_under_curve(ab_full, ab_true, val_loader)
 		accuracies_no_weights[i] = area_under_curve(ab_no_weights, ab_true)
 		accuracies_no_weights_rebal[i] = area_under_curve(ab_no_weights, ab_true, val_loader)
+		accuracies_l2[i] = area_under_curve(ab_l2, ab_true)
+		accuracies_l2_rebal[i] = area_under_curve(ab_l2, ab_true, val_loader)
 
 	print("Baseline, gray (non-rebal) accuracy: " + str(np.mean(accuracies_gray)))
 	print("Baseline, gray (rebal) accuracy: " + str(np.mean(accuracies_gray_rebal)))
@@ -130,3 +141,6 @@ if __name__ == '__main__':
 	print("Full (rebal) accuracy: " + str(np.mean(accuracies_full_rebal)))
 	print("No weights (non-rebal) accuracy: " + str(np.mean(accuracies_no_weights)))
 	print("No weights (rebal) accuracy: " + str(np.mean(accuracies_no_weights_rebal)))
+	print("L2 (non-rebal) accuracy: " + str(np.mean(accuracies_l2)))
+	print("L2 (rebal) accuracy: " + str(np.mean(accuracies_l2_rebal)))
+
