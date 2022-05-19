@@ -42,7 +42,7 @@ class CustomDataSetVGG(Dataset):
         self.mode = mode
         self.input_size = input_size
         self.transform_extra = transform_extra
-        if transform_extra == 'normalize':
+        if transform_extra == 'normalize' or transform_extra == 'orig':
             self.transforms = transforms.Compose([
                 transforms.Resize((self.input_size, self.input_size)),
                 transforms.ToTensor(),
