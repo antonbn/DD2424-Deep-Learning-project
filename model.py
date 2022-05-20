@@ -3,12 +3,13 @@ from torch import nn
 # Basically ripped from their git
 # https://github.com/richzhang/colorization
 class ConvNet(nn.Module):
-    def __init__(self, norm_layer=nn.BatchNorm2d):
+    def __init__(self, custom_loss, norm_layer=nn.BatchNorm2d):
         super(ConvNet, self).__init__()
 
         self.l_cent = 50.
         self.l_norm = 100.
         self.ab_norm = 110.
+        self.custom_loss = custom_loss
 
         model1 = [nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1, bias=True), ]
         model1 += [nn.ReLU(True), ]
@@ -69,7 +70,10 @@ class ConvNet(nn.Module):
         model8 += [nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1, bias=True), ]
         model8 += [nn.ReLU(True), ]
 
-        model8 += [nn.Conv2d(256, 322, kernel_size=1, stride=1, padding=0, bias=True), ]
+        if self.custom_loss:
+            model8 += [nn.Conv2d(256, 322, kernel_size=1, stride=1, padding=0, bias=True), ]
+        else:
+            model8 += [nn.Conv2d(256, 2, kernel_size=1, stride=1, padding=0, bias=True), ]
 
         self.model1 = nn.Sequential(*model1)
         self.model2 = nn.Sequential(*model2)
@@ -79,14 +83,12 @@ class ConvNet(nn.Module):
         self.model6 = nn.Sequential(*model6)
         self.model7 = nn.Sequential(*model7)
         self.model8 = nn.Sequential(*model8)
-
         self.softmax = nn.LogSoftmax(dim=1)
         self.upsample4 = nn.Upsample(scale_factor=4, mode='bilinear', align_corners=False)
         # Output is HxWxQ where Q = 313 or the number of bins of ab pairs
         # Might want to also not upscale it before doing computations as it's more efficient
         # to upscale the result after? Maybe?
 
-    # For some reason they normalize the input
     def normalize_l(self, input_l):
         return (input_l - self.l_cent) / self.l_norm
 
@@ -99,5 +101,6 @@ class ConvNet(nn.Module):
         x = self.model6(x)
         x = self.model7(x)
         x = self.model8(x)
-        x = self.softmax(x)
+        if self.custom_loss:
+            x = self.softmax(x)
         return self.upsample4(x)

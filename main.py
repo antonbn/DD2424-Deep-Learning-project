@@ -2,7 +2,7 @@ import torch
 from dataloaders import create_dataloader, encode
 from loss import CustomLoss
 from config import parse_configs
-from annealed_mean import pred_to_rgb_vec
+from annealed_mean import pred_to_rgb_vec, lab_to_rgb
 from model import ConvNet
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
@@ -20,12 +20,15 @@ def train(configs):
     print("CUDA", torch.cuda.is_available())
     if device.type == "cpu":
         configs.batch_size = 1
-    train_loader = create_dataloader(configs.batch_size, configs.input_size, True, "sports_cars/train", "tree.p")
-    val_loader = create_dataloader(configs.batch_size, configs.input_size, False, "sports_cars/val", "tree.p")
+    train_loader = create_dataloader(configs.batch_size, configs.input_size, True, "train_40000", "tree.p", configs.custom_loss)
+    val_loader = create_dataloader(configs.batch_size, configs.input_size, False, "val_4000", "tree.p", configs.custom_loss)
 
-    model = ConvNet().to(device)
+    model = ConvNet(configs.custom_loss).to(device)
     model.to(torch.double)
-    loss = CustomLoss("W_sports_cars.npy", device)
+    if configs.custom_loss:
+        loss = CustomLoss("W_40000.npy", configs.use_weights, device)
+    else:
+        loss = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=configs.lr, weight_decay=.001)
 
     update_step = 0
@@ -37,20 +40,31 @@ def train(configs):
     train_log_dir = 'logs/tensorboard/' + configs.name
     train_summary_writer = SummaryWriter(train_log_dir)
     epochs = configs.num_epochs
-    val_batch_X, val_batch_Z = encode(*next(iter(val_loader)), device)
-    val_batch_im = pred_to_rgb_vec(val_batch_X, torch.log(val_batch_Z), device, T=0.38)
-    val_batch_im = torchvision.utils.make_grid(val_batch_im)
+    if configs.custom_loss:
+        val_batch_X, val_batch_Z = encode(*next(iter(val_loader)), device)
+        val_batch_rgb = pred_to_rgb_vec(val_batch_X, torch.log(val_batch_Z), device, T=0.38)
+    else:
+        val_batch_lab = next(iter(val_loader))[0].to(device).to(torch.double)
+        val_batch_rgb = lab_to_rgb(val_batch_lab)
+    val_batch_im = torchvision.utils.make_grid(val_batch_rgb)
     train_summary_writer.add_image('im_orig', val_batch_im, update_step)
 
     running_loss = 0.0
     for e in tqdm(range(epochs)):
         for X, Weights, ii in tqdm(train_loader, leave=False):
             model.train()
-            X, Z = encode(X, Weights, ii, device)
+            if configs.custom_loss:
+                X, Z = encode(X, Weights, ii, device)
+            else:
+                X = X.to(device).to(torch.double)
             del ii
             del Weights
-            Z_pred = model(X)
-            J = loss(Z_pred, Z, False)
+            if configs.custom_loss:
+                Z_pred = model(X)
+                J = loss(Z_pred, Z)
+            else:
+                Y_pred = model(X[:, 0, :, :].unsqueeze(1))
+                J = loss(Y_pred, X[:, 1:, :, :])
             optimizer.zero_grad()
             J.backward()
             optimizer.step()
@@ -59,8 +73,12 @@ def train(configs):
                 running_loss /= configs.train_loss_fr
                 model.eval()
                 with torch.no_grad():
-                    val_batch_Z = model(val_batch_X)
-                    val_batch_im = pred_to_rgb_vec(val_batch_X, val_batch_Z, device, T=0.38)
+                    if configs.custom_loss:
+                        val_batch_Z = model(val_batch_X)
+                        val_batch_im = pred_to_rgb_vec(val_batch_X, val_batch_Z, device, T=0.38)
+                    else:
+                        val_batch_im = model(val_batch_lab[:, 0, :, :].unsqueeze(1))
+                        val_batch_im = lab_to_rgb(torch.cat((val_batch_lab[:, 0, :, :].unsqueeze(1), val_batch_im), axis=1))
                     val_batch_im = torchvision.utils.make_grid(val_batch_im)
                 train_summary_writer.add_scalar(f'info/Training loss', running_loss, update_step)
                 train_summary_writer.add_image('imresult', val_batch_im, update_step)
@@ -70,11 +88,18 @@ def train(configs):
                 model.eval()
                 with torch.no_grad():
                     for X, Weights, ii in tqdm(val_loader, leave=False):
-                        X, Z = encode(X, Weights, ii, device)
+                        if configs.custom_loss:
+                            X, Z = encode(X, Weights, ii, device)
+                        else:
+                            X = X.to(device).to(torch.double)
                         del ii
                         del Weights
-                        Z_pred = model(X)
-                        J = loss(Z_pred, Z, False)
+                        if configs.custom_loss:
+                            Z_pred = model(X)
+                            J = loss(Z_pred, Z)
+                        else:
+                            Y_pred = model(X[:, 0, :, :].unsqueeze(1))
+                            J = loss(Y_pred, X[:, 1:, :, :])
                         val_loss += J.item()
                 train_summary_writer.add_scalar(f'info/Validation loss', val_loss, update_step)
             update_step += 1

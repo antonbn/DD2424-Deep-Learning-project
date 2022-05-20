@@ -15,7 +15,7 @@ def parse_configs():
     ####################################################################
     ##############     Dataloader and Running configs            #######
     ####################################################################
-    parser.add_argument('--name', type=str, default='cars_no_weights', metavar='Name',
+    parser.add_argument('--name', type=str, default='cars_1_NN', metavar='Name',
                         help='model name')
     parser.add_argument('--batch_size', type=int, default=8)
 
@@ -23,14 +23,18 @@ def parse_configs():
     ##############     Training strategy            ###################
     ####################################################################
 
-    parser.add_argument('--num_epochs', type=int, default=60, metavar='N',
+    parser.add_argument('--num_epochs', type=int, default=80, metavar='N',
                         help='number of total epochs to run')
     parser.add_argument('--lr', type=float, default=1e-3, metavar='LR',
                         help='initial learning rate')
     parser.add_argument('--train_loss_fr', type=float, default=10, metavar='LF',
                         help='loss plotting frequency in update steps')
-    parser.add_argument('--val_loss_fr', type=float, default=100, metavar='LF',
+    parser.add_argument('--val_loss_fr', type=float, default=100, metavar='VF',
                         help='loss plotting frequency in update steps')
+    parser.add_argument('--custom_loss', type=bool, default=True, metavar='CL',
+                        help='loss type')
+    parser.add_argument('--use_weights', type=bool, default=True, metavar='CW',
+                        help='loss type')
 
     configs = edict(vars(parser.parse_args()))
 
