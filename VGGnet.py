@@ -33,7 +33,7 @@ def VGG_eval(configs):
         categories = [s.strip() for s in f.readlines()]
     categories = [x.split(" ")[0] for x in categories]
 
-    models_to_test = ['orig', 'random', 'grayscale','cars_full_35.tar', 'cars_no_weights_44.tar', 'cars_L2_64.tar']
+    models_to_test = ['orig', 'random', 'grayscale','cars_full_35.tar', 'cars_no_weights_44.tar', 'cars_L2_64.tar', 'cars_1_NN_21.tar']
 
     accuracies = np.zeros(len(models_to_test))
 
