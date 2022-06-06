@@ -14,7 +14,7 @@ class CustomDataSet(Dataset):
         self.images = glob.glob(os.path.join(os.path.join(main_dir, mode), '*.JPEG'))
         self.mode = mode
         self.input_size = input_size
-        self.n_neighbours = 1
+        self.n_neighbours = 5
         self.q = 322
         self.custom_loss = custom_loss
         with open(tree_path, 'rb') as pickle_file:

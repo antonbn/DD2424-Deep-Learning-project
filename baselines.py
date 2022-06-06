@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def to_gray(ab):
     return np.zeros_like(ab)
 

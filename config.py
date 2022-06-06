@@ -15,7 +15,7 @@ def parse_configs():
     ####################################################################
     ##############     Dataloader and Running configs            #######
     ####################################################################
-    parser.add_argument('--name', type=str, default='cars_1_NN', metavar='Name',
+    parser.add_argument('--name', type=str, default='40k_new', metavar='Name',
                         help='model name')
     parser.add_argument('--batch_size', type=int, default=8)
 
